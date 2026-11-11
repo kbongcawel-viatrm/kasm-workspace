@@ -98,12 +98,12 @@ flowchart TB
 
 ## Design principles
 
-- **Immutable host first.** Keep the FCOS host focused on infrastructure and container orchestration. Use supported host-management mechanisms; do not treat it like a mutable general-purpose server.
-- **Clear trust boundaries.** Host controls, application services, workspace sessions, and Cloudflare edge policy have separate responsibilities.
-- **No accidental routing.** The LAN router remains responsible for routing and Internet access. Firewalld protects the FCOS host; it does not automatically protect every LAN device.
-- **Least privilege.** Avoid privileged containers, keep capabilities narrow, use read-only mounts where practical, and keep credentials out of images and Git.
+- **Immutable host first.** Immutable and gated.
+- **Clear trust boundaries.** Identity based policy rules.
+- **No accidental routing.** Explicit routing rules.
+- **Least privilege.** Identity + device matching
 - **Fail closed where it matters.** A WARP connected indicator is not a kill switch. Enforce and test egress restrictions independently of client status.
-- **Verify before relying on it.** A running container is not proof of packet visibility, host coverage, policy enforcement, or a successful workspace launch.
+- **Verify before relying on it.** zero trust model.
 
 ## Component map
 
