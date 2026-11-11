@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dict>
+  <!-- Replace with the Cloudflare Zero Trust team name (the subdomain only). -->
+  <key>organization</key>
+  <string>YOUR_TEAM_NAME</string>
+
+  <!-- Enrollment values must be injected at runtime from a secret store. -->
+  <!-- Do not commit Client ID or Client Secret in this file or image. -->
+  <key>service_mode</key>
+  <string>warp</string>
+  <key>auto_connect</key>
+  <integer>1</integer>
+</dict>

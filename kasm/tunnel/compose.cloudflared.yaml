@@ -1,0 +1,29 @@
+# Deploy on the FCOS HOST alongside the ai-stack Compose project.
+# Create a remotely-managed tunnel in Cloudflare and supply its token via
+# /etc/ai-stack/secrets/cloudflared-token (root-owned, mode 0600).
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: ai-stack-cloudflared
+    command:
+      - tunnel
+      - --no-autoupdate
+      - --metrics
+      - 127.0.0.1:20241
+      - run
+      - --token-file
+      - /run/secrets/cloudflared_token
+    secrets:
+      - cloudflared_token
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+
+secrets:
+  cloudflared_token:
+    file: /etc/ai-stack/secrets/cloudflared-token
