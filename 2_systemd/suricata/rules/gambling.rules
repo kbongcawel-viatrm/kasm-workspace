@@ -1,0 +1,57 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : Gambling
+#
+#  Blocks domains related to online gambling and betting
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-10-28T14:00:02.715253+00:00
+# Total Entries : 377180
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * Alex Sannikov - Gambling (MIT)
+#     https://github.com/alexsannikov/adguardhome-filters/raw/refs/heads/master/gambling.txt
+#     Updated: 2026-10-26T08:00:05.054197+00:00
+#   * Alif (MIT)
+#     https://github.com/arfshl/anti-gambling-domains/raw/refs/heads/main/domains-activeonly.txt
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * arkynx (Public Domain)
+#     https://github.com/arkynx/blocklists/raw/refs/heads/main/gambling-domains.txt
+#     Updated: 2026-10-28T14:00:02.715253+00:00
+#   * bet-blocker (Public Domain)
+#     https://github.com/bet-blocker/bet-blocker/raw/refs/heads/main/blocklist.txt
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * hostsVN (MIT)
+#     https://github.com/bigdargon/hostsVN/raw/master/extensions/gambling/hosts
+#     Updated: 2026-10-24T16:00:04.849361+00:00
+#   * mtxadmin - All Bets Are Off (MIT)
+#     https://github.com/mtxadmin/ublock/raw/refs/heads/master/hosts/_all_bets_are_off
+#     Updated: 2026-08-31T14:00:03.128731+00:00
+#   * ShadowWhisperer - Gambling (Public Domain)
+#     https://github.com/ShadowWhisperer/BlockLists/raw/refs/heads/master/RAW/Gambling
+#     Updated: 2026-10-20T20:00:02.597484+00:00
+#   * Sinfonietta - Gambling (MIT)
+#     https://github.com/Sinfonietta/hostfiles/raw/refs/heads/master/gambling-hosts
+#     Updated: 2026-09-09T02:30:02.618602+00:00
+#   * The Blocklist Project - Gambling (MIT)
+#     https://blocklistproject.github.io/Lists/gambling.txt
+#     Updated: 2026-07-20T13:30:02.488627+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [Gambling] Blocked DNS Query"; dns.query; domain; dataset:isset,gambling,type string,load datasets/gambling.txt; classtype:policy-violation; priority:2; sid:12001001; rev:1; reference:url,https://www.ipfire.org/dbl/gambling; metadata:dbl gambling.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [Gambling] Blocked HTTP Request"; http.host; domain; dataset:isset,gambling,type string,load datasets/gambling.txt; classtype:policy-violation; priority:2; sid:12001002; rev:1; reference:url,https://www.ipfire.org/dbl/gambling; metadata:dbl gambling.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [Gambling] Blocked TLS Connection"; tls.sni; domain; dataset:isset,gambling,type string,load datasets/gambling.txt; classtype:policy-violation; priority:2; sid:12001003; rev:1; reference:url,https://www.ipfire.org/dbl/gambling; metadata:dbl gambling.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [Gambling] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,gambling,type string,load datasets/gambling.txt; classtype:policy-violation; priority:2; sid:12001004; rev:1; reference:url,https://www.ipfire.org/dbl/gambling; metadata:dbl gambling.dbl.ipfire.org;)

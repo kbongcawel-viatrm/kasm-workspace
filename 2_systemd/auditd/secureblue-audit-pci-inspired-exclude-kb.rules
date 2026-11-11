@@ -1,0 +1,104 @@
+# Fedora Secureblue workstation audit baseline
+# Adapted with selected patterns from linux-audit/audit-userspace:
+# rules/30-pci-dss-v31.rules
+#
+# Scope:
+# - Monitor security-sensitive configuration and audit-log protection.
+# - Exclude login audit UID (auid) 1000 from the selected user-attributed
+#   syscall rules below.
+# - File watches remain system-wide and can still record changes by UID 1000.
+#
+# Validation notes:
+# - Review this ruleset against the installed kernel/audit-userspace version.
+# - Keep existing rules backed up before replacing any files.
+# - Do not enable "-e 2" until successfully tested and recovery access is confirmed.
+# - This is a workstation baseline, not a PCI DSS compliance certification.
+
+-D
+-b 8192
+-f 1
+--backlog_wait_time 60000
+
+## Audit and security configuration watches (system-wide)
+-w /etc/audit/ -p wa -k audit_config
+-w /etc/passwd -p wa -k identity
+-w /etc/group -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+-w /etc/security/ -p wa -k security_config
+-w /etc/pam.d/ -p wa -k pam
+-w /etc/polkit-1/ -p wa -k polkit
+-w /etc/sudoers -p wa -k privilege_config
+-w /etc/sudoers.d/ -p wa -k privilege_config
+
+## SSH, systemd, SELinux, firewall, and network configuration (system-wide)
+-w /etc/ssh/ -p wa -k ssh_config
+-w /etc/systemd/system/ -p wa -k systemd_config
+-w /etc/selinux/ -p wa -k selinux_config
+-w /etc/firewalld/ -p wa -k firewall_config
+-w /etc/NetworkManager/ -p wa -k network_config
+-w /etc/hosts -p wa -k network_config
+-w /etc/hostname -p wa -k network_config
+-w /etc/resolv.conf -p wa -k network_config
+
+## Container and software repository configuration (system-wide)
+-w /etc/containers/ -p wa -k container_config
+-w /etc/dnf/ -p wa -k software_config
+-w /etc/yum.repos.d/ -p wa -k software_config
+
+## Kernel and boot security configuration (system-wide)
+-w /etc/sysctl.d/ -p wa -k kernel_config
+-w /etc/modprobe.d/ -p wa -k kernel_config
+-w /boot/ -p wa -k boot_config
+
+## PCI DSS-inspired: identify privilege-escalation launchers
+## These executable paths may differ on a given system; verify with:
+##   command -v systemd-run
+##   command -v pkexec
+-a always,exit -F arch=b64 -F path=/usr/bin/systemd-run -F perm=x -F auid!=unset -F auid!=1000 -k maybe_escalation
+-a always,exit -F arch=b64 -F path=/usr/bin/pkexec -F perm=x -F auid!=unset -F auid!=1000 -k maybe_escalation
+
+## PCI DSS-inspired: audit-trail access by other logged-in users
+## Executable watches below are system-wide; they can log launches by UID 1000.
+-a always,exit -F arch=b64 -F dir=/var/log/audit/ -F perm=r -F auid>=1000 -F auid!=unset -F auid!=1000 -k audit_trail_access
+-a always,exit -F arch=b64 -F path=/usr/sbin/ausearch -F perm=x -k audit_tool_execution
+-a always,exit -F arch=b64 -F path=/usr/sbin/aureport -F perm=x -k audit_tool_execution
+-a always,exit -F arch=b64 -F path=/usr/sbin/aulast -F perm=x -k audit_tool_execution
+-a always,exit -F arch=b64 -F path=/usr/sbin/aulastlog -F perm=x -k audit_tool_execution
+
+## Account database changes are monitored by the system-wide file watches above.
+
+## Kernel module loading/unloading; excludes login audit UID 1000
+-a always,exit -F arch=b64 -S init_module -S finit_module -S delete_module -F auid!=1000 -k kernel_modules
+
+## Time changes; excludes login audit UID 1000
+-a always,exit -F arch=b64 -S adjtimex -S settimeofday -S clock_settime -F auid!=1000 -k time_change
+-w /etc/localtime -p wa -k time_config
+
+## Mount operations; excludes login audit UID 1000 and unset audit UIDs
+-a always,exit -F arch=b64 -S mount -S umount2 -F auid>=1000 -F auid!=unset -F auid!=1000 -k mount_change
+
+## Permission, ownership, and extended-attribute changes by other logged-in users
+-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=unset -F auid!=1000 -k perm_mod
+-a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=unset -F auid!=1000 -k perm_mod
+-a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=unset -F auid!=1000 -k perm_mod
+
+## Process tracing, BPF, and namespace changes; excludes login audit UID 1000
+-a always,exit -F arch=b64 -S ptrace -F auid!=1000 -k process_trace
+-a always,exit -F arch=b64 -S bpf -F auid!=1000 -k bpf_activity
+-a always,exit -F arch=b64 -S unshare -S setns -F auid!=1000 -k namespace_change
+
+## Failed access attempts under /etc by other logged-in users
+-a always,exit -F arch=b64 -S openat -F dir=/etc -F exit=-EACCES -F auid>=1000 -F auid!=unset -F auid!=1000 -k denied_etc_access
+-a always,exit -F arch=b64 -S openat -F dir=/etc -F exit=-EPERM -F auid>=1000 -F auid!=unset -F auid!=1000 -k denied_etc_access
+
+## PCI DSS-inspired: detect audit-log modification (system-wide).
+## This intentionally remains active for UID 1000 as well.
+-a always,exit -F arch=b64 -F dir=/var/log/audit/ -F perm=wa -k audit_log_modification
+
+## Optional higher-volume process execution telemetry; disabled by default.
+## If enabled, include "-F auid!=1000" to exclude UID 1000:
+## -a always,exit -F arch=b64 -S execve -S execveat -F auid!=1000 -k process_execution
+
+## Leave the audit rules mutable during initial validation.
+## Do not add "-e 2" until the rules have been validated and recovery access tested.

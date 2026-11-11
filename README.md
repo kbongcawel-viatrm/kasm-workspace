@@ -125,21 +125,30 @@ flowchart TB
 ## Repository layout
 
 ```text
-ai-stack/
-├── compose.yaml                       # FCOS security services
-├── Containerfile.audit                # Audit-tools image build
-├── .env.example                       # Non-secret configuration template
+kasm-workspace/
+├── compose.yaml                            # FCOS security services (project 1)
+├── .env.example                            # Non-secret configuration template
+├── 1_host/
+│   ├── Containerfile.audit                 # Audit-tools image build
+│   └── ssh/                                # CIS-aligned sshd drop-in + issue.net
+├── 2_systemd/                              # Host units, timers, and service configs
+│   ├── compose/                            # ai-stack-compose.service (profile daemons)
+│   ├── aide/ lynis/                        # Compose-job systemd units/timers
+│   ├── clamav/                             # Container scan units + host-native clamav units
+│   ├── auditd/ firewalld/                  # Host-native security configs
+│   └── suricata/                           # suricata.yaml + curated rulesets
+├── 3_containers/
+│   ├── cloudflared/compose.yaml            # Tunnel connector (project 2)
+│   └── kasm/
+│       ├── README.md                       # Kasm / Cloudflare integration notes
+│       └── workspace/                      # Custom Kasm image + build compose (project 3)
 ├── config/
-│   ├── aide/aide.conf                 # AIDE policy for the scan target
-│   └── suricata/rules/local.rules     # Local Suricata rules
-├── data/                              # Runtime state (create locally; do not commit)
-├── logs/                              # Runtime logs (create locally; do not commit)
-├── scripts/                           # AIDE and Lynis entrypoints
-├── systemd/                           # Host units and timers
-└── kasm/
-    ├── README.md                      # Kasm / Cloudflare integration notes
-    ├── tunnel/compose.cloudflared.yaml
-    └── workspace/                     # Custom Kasm Linux terminal image
+│   └── aide/aide.conf                      # AIDE policy for the scan target
+├── data/                                   # Runtime state (create locally; do not commit)
+├── logs/                                   # Runtime logs (create locally; do not commit)
+└── tools/
+    ├── scripts/                            # AIDE, Lynis, ClamAV, WARP helper scripts
+    └── installers/                         # Offline installer payloads
 ```
 
 ## Deployment model
@@ -188,10 +197,10 @@ docker compose --profile antivirus up -d clamav
 
 ```bash
 # FCOS host
-run0 install -m 0644 systemd/*.service systemd/*.timer /etc/systemd/system/
+run0 install -m 0644 2_systemd/*/*.service 2_systemd/*/*.timer /etc/systemd/system/
 run0 systemctl daemon-reload
 run0 systemctl enable --now ai-stack-compose.service
-run0 systemctl enable --now ai-stack-clamav-scan.timer ai-stack-lynis-audit.timer
+run0 systemctl enable --now ai-stack-clamav-scan.timer lynis.timer
 ```
 
 Initialize AIDE only after the scan target is populated and reviewed:
@@ -211,39 +220,62 @@ run0 systemctl enable --now ai-stack-aide-check.timer
 
 Never automatically refresh the AIDE baseline after a reported change.
 
+### 3a. Host-native hardening pieces
+
+These live under `1_host/` and `2_systemd/` and are installed manually on the FCOS host:
+
+```bash
+# FCOS host — SSH (CIS-aligned drop-in; see 1_host/ssh/ for details)
+run0 install -d -m 0755 /etc/ssh/sshd_config.d
+run0 install -m 0644 1_host/ssh/sshd_config.d/99-cis-hardening.conf /etc/ssh/sshd_config.d/
+sshd -t && sudo systemctl reload sshd
+
+# FCOS host — auditd rules baseline
+run0 install -m 0640 2_systemd/auditd/secureblue-audit-pci-inspired-exclude-kb.rules \
+  /etc/audit/rules.d/99-secureblue-exclude.rules
+sudo augenrules --load   # or: systemctl restart auditd
+
+# FCOS host — firewalld default-deny scripts (dry-run by default)
+sudo bash 2_systemd/firewalld/finalized-inbound-rules.sh
+sudo bash 2_systemd/firewalld/finalized-outbound-rules.sh
+
+# FCOS host — native ClamAV (Secureblue workstation scan; separate from the
+# containerized clamav service). Install the RPM payload, then:
+run0 install -m 0755 2_systemd/clamav/clam-scan.sh /usr/local/sbin/clam-scan.sh
+run0 install -m 0644 2_systemd/clamav/clam-scan.service 2_systemd/clamav/clam-scan.timer /etc/systemd/system/
+run0 systemctl daemon-reload && run0 systemctl enable --now clam-scan.timer
+```
+
 ### 4. Deploy Kasm separately
 
 Kasm is not part of `compose.yaml`. Install it on a supported Linux VM with the required rootful Docker Engine and Compose v2 versions. Kasm's installer owns its internal services and upgrades. Do not combine Kasm's internal containers with this generic Compose project.
 
 The target workspaces are:
 
-- Linux terminal — custom image recipe in `kasm/workspace/`; Cloudflare One Client runtime remains a proof of concept.
+- Linux terminal — custom image recipe in `3_containers/kasm/workspace/`; Cloudflare One Client runtime remains a proof of concept.
 - Firefox — browser workspace with managed Gateway DoH configuration.
 
 The FCOS host is not listed as a supported Kasm installation OS in the supplied deployment guidance. Keep Kasm on a supported VM unless compatibility is explicitly validated and accepted.
 
 ### 5. Connect Cloudflare Tunnel
 
-The `kasm/tunnel/compose.cloudflared.yaml` fragment runs on the FCOS host. It connects outbound to a remotely managed Cloudflare Tunnel; it is not a router, bridge, or VPN for the host.
+The `3_containers/cloudflared/compose.yaml` project runs on the FCOS host. It connects outbound to a remotely managed Cloudflare Tunnel; it is not a router, bridge, or VPN for the host.
 
-Create the token file securely on FCOS:
+Create the token file securely on FCOS, either next to the compose file or at a path you export as `CLOUDFLARED_TOKEN_FILE`:
 
 ```bash
 # FCOS host
-run0 install -d -m 0700 /etc/ai-stack/secrets
-# Transfer the token through a secure channel; do not paste it into shell history.
-run0 install -o root -g root -m 0600 /secure/staging/cloudflared-token \
-  /etc/ai-stack/secrets/cloudflared-token
+cd /opt/ai-stack/3_containers/cloudflared
+run0 install -o root -g root -m 0600 /secure/staging/cloudflared-token ./cloudflared-token
 ```
 
-Validate the merged Compose configuration before any deployment:
+Validate and deploy the standalone project:
 
 ```bash
 # FCOS host
-docker compose \
-  -f /opt/ai-stack/compose.yaml \
-  -f /opt/ai-stack/kasm/tunnel/compose.cloudflared.yaml \
-  config --quiet
+cd /opt/ai-stack/3_containers/cloudflared
+docker compose config --quiet
+docker compose up -d
 ```
 
 Configure the public hostname (recommended: `kasm.home-security.uk`) and its Cloudflare Access application/policy in the Cloudflare dashboard. No router port-forward is required for the outbound tunnel. The hostname and policy are not provisioned by this repository.
@@ -258,7 +290,7 @@ docker compose logs --tail=100 suricata clamav
 run0 systemctl list-timers 'ai-stack-*'
 run0 journalctl -u ai-stack-clamav-scan.service -n 100 --no-pager
 run0 journalctl -u ai-stack-aide-check.service -n 100 --no-pager
-run0 journalctl -u ai-stack-lynis-audit.service -n 100 --no-pager
+run0 journalctl -u lynis.service -n 100 --no-pager
 ```
 
 Useful service controls:
@@ -267,7 +299,7 @@ Useful service controls:
 # FCOS host
 run0 systemctl status ai-stack-compose.service
 run0 systemctl start ai-stack-clamav-scan.service
-run0 systemctl start ai-stack-lynis-audit.service
+run0 systemctl start lynis.service
 run0 systemctl start ai-stack-aide-check.service
 ```
 

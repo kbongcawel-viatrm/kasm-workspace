@@ -1,0 +1,72 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : Advertising
+#
+#  Blocks domains used for ads, tracking, and ad delivery
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-10-28T10:00:02.495310+00:00
+# Total Entries : 37214
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * AdAway (CC Attribution 3.0)
+#     https://adaway.org/hosts.txt
+#     Updated: 2025-12-28T21:17:02.544331+00:00
+#   * Admira List (CC0)
+#     https://github.com/jkrejcha/AdmiraList/raw/refs/heads/master/AdmiraList.txt
+#     Updated: 2026-08-18T12:00:04.771703+00:00
+#   * Bekir (CC BY-SA 3.0 Unported)
+#     https://raw.githubusercontent.com/bkrucarci/turk-adlist/refs/heads/master/hosts
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * damengzhu (Public Domain)
+#     https://github.com/damengzhu/banad/raw/refs/heads/main/hosts.txt
+#     Updated: 2026-10-27T05:30:05.167415+00:00
+#   * LanikSJ - admaven (MIT)
+#     https://raw.githubusercontent.com/LanikSJ/ubo-filters/main/filters/admaven-domains.txt
+#     Updated: 2026-09-21T16:00:04.545252+00:00
+#   * LanikSJ - admeasures (MIT)
+#     https://raw.githubusercontent.com/LanikSJ/ubo-filters/main/filters/admeasures-domains.txt
+#     Updated: 2026-09-21T16:00:04.545252+00:00
+#   * LanikSJ - getadmiral (MIT)
+#     https://raw.githubusercontent.com/LanikSJ/ubo-filters/main/filters/getadmiral-domains.txt
+#     Updated: 2026-10-26T22:00:02.426247+00:00
+#   * LanikSJ - hilltopads (MIT)
+#     https://raw.githubusercontent.com/LanikSJ/ubo-filters/main/filters/hilltopads-domains.txt
+#     Updated: 2026-10-05T17:30:03.072209+00:00
+#   * LanikSJ - istripper (MIT)
+#     https://raw.githubusercontent.com/LanikSJ/ubo-filters/main/filters/istripper-domains.txt
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * mtxadmin - WAP (MIT)
+#     https://github.com/mtxadmin/ublock/raw/refs/heads/master/hosts/_wap
+#     Updated: 2026-10-15T06:30:05.617645+00:00
+#   * ShadowWhisperer - Ads (Public Domain)
+#     https://github.com/ShadowWhisperer/BlockLists/raw/refs/heads/master/RAW/Ads
+#     Updated: 2026-10-27T23:30:03.260774+00:00
+#   * Tyler (CC0)
+#     https://github.com/NullAngst/Domain-Blocklists/raw/refs/heads/main/Domain-Blocklist
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * UT1 - Ads (CC-BY-SA 4.0)
+#     https://dsi.ut-capitole.fr/blacklists/download/ads.tar.gz
+#     Updated: 2026-10-27T22:00:02.888629+00:00
+#   * yoyo.org (Public Domain)
+#     https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&mimetype=plaintext&useip=0.0.0.0
+#     Updated: 2026-10-28T10:00:02.495310+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [Advertising] Blocked DNS Query"; dns.query; domain; dataset:isset,ads,type string,load datasets/ads.txt; classtype:policy-violation; priority:3; sid:12001501; rev:1; reference:url,https://www.ipfire.org/dbl/ads; metadata:dbl ads.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [Advertising] Blocked HTTP Request"; http.host; domain; dataset:isset,ads,type string,load datasets/ads.txt; classtype:policy-violation; priority:3; sid:12001502; rev:1; reference:url,https://www.ipfire.org/dbl/ads; metadata:dbl ads.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [Advertising] Blocked TLS Connection"; tls.sni; domain; dataset:isset,ads,type string,load datasets/ads.txt; classtype:policy-violation; priority:3; sid:12001503; rev:1; reference:url,https://www.ipfire.org/dbl/ads; metadata:dbl ads.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [Advertising] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,ads,type string,load datasets/ads.txt; classtype:policy-violation; priority:3; sid:12001504; rev:1; reference:url,https://www.ipfire.org/dbl/ads; metadata:dbl ads.dbl.ipfire.org;)

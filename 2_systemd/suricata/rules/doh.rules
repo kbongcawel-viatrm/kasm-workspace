@@ -1,0 +1,36 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : DNS-over-HTTPS
+#
+#  Blocks public DNS-over-HTTPS resolver endpoints
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-10-28T05:00:03.122952+00:00
+# Total Entries : 5677
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * Peter Russell (CC0)
+#     https://raw.githubusercontent.com/jpgpi250/piholemanual/refs/heads/master/DOH/DOHadb.txt
+#     Updated: 2026-10-28T05:00:03.122952+00:00
+#   * UT1 - DoH (CC BY-SA 4.0)
+#     https://dsi.ut-capitole.fr/blacklists/download/doh.tar.gz
+#     Updated: 2026-10-27T22:00:02.888629+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [DNS-over-HTTPS] Blocked DNS Query"; dns.query; domain; dataset:isset,doh,type string,load datasets/doh.txt; classtype:policy-violation; priority:2; sid:12001401; rev:1; reference:url,https://www.ipfire.org/dbl/doh; metadata:dbl doh.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [DNS-over-HTTPS] Blocked HTTP Request"; http.host; domain; dataset:isset,doh,type string,load datasets/doh.txt; classtype:policy-violation; priority:2; sid:12001402; rev:1; reference:url,https://www.ipfire.org/dbl/doh; metadata:dbl doh.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [DNS-over-HTTPS] Blocked TLS Connection"; tls.sni; domain; dataset:isset,doh,type string,load datasets/doh.txt; classtype:policy-violation; priority:2; sid:12001403; rev:1; reference:url,https://www.ipfire.org/dbl/doh; metadata:dbl doh.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [DNS-over-HTTPS] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,doh,type string,load datasets/doh.txt; classtype:policy-violation; priority:2; sid:12001404; rev:1; reference:url,https://www.ipfire.org/dbl/doh; metadata:dbl doh.dbl.ipfire.org;)

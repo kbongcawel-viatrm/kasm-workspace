@@ -1,0 +1,45 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : Pornography
+#
+#  Blocks domains hosting adult content
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-10-28T16:00:04.641149+00:00
+# Total Entries : 1027545
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * ABPIndo (CC BY-SA 3.0 Unported)
+#     https://raw.githubusercontent.com/ABPindo/indonesianadblockrules/refs/heads/master/src/adult/adult_thirdparty.txt
+#     Updated: 2026-10-26T12:00:02.459569+00:00
+#   * Alex Sannikov - Porn (MIT)
+#     https://github.com/alexsannikov/adguardhome-filters/raw/refs/heads/master/porn.txt
+#     Updated: 2026-10-26T07:30:04.785894+00:00
+#   * ShadowWhisperer - Adult (Public Domain)
+#     https://github.com/ShadowWhisperer/BlockLists/raw/refs/heads/master/RAW/Adult
+#     Updated: 2026-10-28T16:00:04.641149+00:00
+#   * Sinfonietta - Pornography (MIT)
+#     https://github.com/Sinfonietta/hostfiles/raw/refs/heads/master/pornography-hosts
+#     Updated: 2026-10-14T02:00:08.711072+00:00
+#   * The Blocklist Project - Porn (MIT)
+#     https://blocklistproject.github.io/Lists/porn.txt
+#     Updated: 2026-07-20T15:30:02.963292+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [Pornography] Blocked DNS Query"; dns.query; domain; dataset:isset,porn,type string,load datasets/porn.txt; classtype:policy-violation; priority:3; sid:12000901; rev:1; reference:url,https://www.ipfire.org/dbl/porn; metadata:dbl porn.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [Pornography] Blocked HTTP Request"; http.host; domain; dataset:isset,porn,type string,load datasets/porn.txt; classtype:policy-violation; priority:3; sid:12000902; rev:1; reference:url,https://www.ipfire.org/dbl/porn; metadata:dbl porn.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [Pornography] Blocked TLS Connection"; tls.sni; domain; dataset:isset,porn,type string,load datasets/porn.txt; classtype:policy-violation; priority:3; sid:12000903; rev:1; reference:url,https://www.ipfire.org/dbl/porn; metadata:dbl porn.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [Pornography] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,porn,type string,load datasets/porn.txt; classtype:policy-violation; priority:3; sid:12000904; rev:1; reference:url,https://www.ipfire.org/dbl/porn; metadata:dbl porn.dbl.ipfire.org;)

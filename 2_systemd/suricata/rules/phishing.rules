@@ -1,0 +1,72 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : Phishing
+#
+#  Blocks domains used for credential theft and fraud
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-10-28T16:00:04.641149+00:00
+# Total Entries : 464911
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * Cert.pl (Public Domain)
+#     https://hole.cert.pl/domains/v2/domains_adblock.txt
+#     Updated: 2026-10-28T16:00:04.641149+00:00
+#   * DurableNapkin (MIT)
+#     https://raw.githubusercontent.com/durablenapkin/scamblocklist/master/hosts.txt
+#     Updated: 2026-10-28T05:00:03.122952+00:00
+#   * KADomeny (CC BY-SA 4.0)
+#     https://raw.githubusercontent.com/PolishFiltersTeam/KADhosts/master/KADomains.txt
+#     Updated: 2026-10-28T15:00:04.580788+00:00
+#   * Mikhail Kasimov - Phishing Feed (MIT)
+#     https://github.com/MikhailKasimov/validin-phish-feed/raw/refs/heads/main/validin-phish-feed.txt
+#     Updated: 2026-10-14T02:00:08.711072+00:00
+#   * Mikhail Kasimov - Phishing Feed 1 (MIT)
+#     https://github.com/MikhailKasimov/validin-phish-feed/raw/refs/heads/main/validin-phish-feed-1.txt
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * Mikhail Kasimov - Phishing Feed 2 (MIT)
+#     https://github.com/MikhailKasimov/validin-phish-feed/raw/refs/heads/main/validin-phish-feed-2.txt
+#     Updated: 2026-09-29T18:30:04.903350+00:00
+#   * Mikhail Kasimov - Phishing Feed 3 (MIT)
+#     https://github.com/MikhailKasimov/validin-phish-feed/raw/refs/heads/main/validin-phish-feed-3.txt
+#     Updated: 2026-10-10T08:00:03.591531+00:00
+#   * Mikhail Kasimov - Phishing Feed 4 (MIT)
+#     https://github.com/MikhailKasimov/validin-phish-feed/raw/refs/heads/main/validin-phish-feed-4.txt
+#     Updated: 2026-10-15T07:00:07.169941+00:00
+#   * Mikhail Kasimov - Phishing Feed 5 (MIT)
+#     https://github.com/MikhailKasimov/validin-phish-feed/raw/refs/heads/main/validin-phish-feed-5.txt
+#     Updated: 2026-10-10T08:00:03.591531+00:00
+#   * Mikhail Kasimov - Phishing Feed 6 (MIT)
+#     https://github.com/MikhailKasimov/validin-phish-feed/raw/refs/heads/main/validin-phish-feed-6.txt
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * Mikhail Kasimov - Phishing Feed 7 (MIT)
+#     https://github.com/MikhailKasimov/validin-phish-feed/raw/refs/heads/main/validin-phish-feed-7.txt
+#     Updated: 2026-10-24T23:00:02.982642+00:00
+#   * Phishing URL Blocklist (CC BY-SA 4.0/CC0/MIT)
+#     https://malware-filter.gitlab.io/malware-filter/phishing-filter-hosts.txt
+#     Updated: 2026-10-28T13:00:04.897172+00:00
+#   * phishunt.io Blocklist (CC0 1.0)
+#     https://phishunt.io/blocklist/domains.txt
+#     Updated: 2026-10-28T16:00:04.641149+00:00
+#   * ShadowWhisperer - Scam (Public Domain)
+#     https://github.com/ShadowWhisperer/BlockLists/raw/refs/heads/master/RAW/Scam
+#     Updated: 2026-10-25T06:30:04.887103+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [Phishing] Blocked DNS Query"; dns.query; domain; dataset:isset,phishing,type string,load datasets/phishing.txt; classtype:policy-violation; priority:1; sid:12001901; rev:1; reference:url,https://www.ipfire.org/dbl/phishing; metadata:dbl phishing.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [Phishing] Blocked HTTP Request"; http.host; domain; dataset:isset,phishing,type string,load datasets/phishing.txt; classtype:policy-violation; priority:1; sid:12001902; rev:1; reference:url,https://www.ipfire.org/dbl/phishing; metadata:dbl phishing.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [Phishing] Blocked TLS Connection"; tls.sni; domain; dataset:isset,phishing,type string,load datasets/phishing.txt; classtype:policy-violation; priority:1; sid:12001903; rev:1; reference:url,https://www.ipfire.org/dbl/phishing; metadata:dbl phishing.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [Phishing] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,phishing,type string,load datasets/phishing.txt; classtype:policy-violation; priority:1; sid:12001904; rev:1; reference:url,https://www.ipfire.org/dbl/phishing; metadata:dbl phishing.dbl.ipfire.org;)

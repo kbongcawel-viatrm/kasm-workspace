@@ -1,0 +1,36 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : Smart TV
+#
+#  Blocks telemetry for Smart TVs
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-09-08T15:31:00.623014+00:00
+# Total Entries : 226
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * H. Kamran (MIT)
+#     https://raw.githubusercontent.com/hkamran80/blocklists/main/smart-tv.txt
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * The Blocklist Project - Smart TV (MIT)
+#     https://blocklistproject.github.io/Lists/smart-tv.txt
+#     Updated: 2026-07-20T13:30:02.488627+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [Smart TV] Blocked DNS Query"; dns.query; domain; dataset:isset,smart-tv,type string,load datasets/smart-tv.txt; classtype:policy-violation; priority:4; sid:12002101; rev:1; reference:url,https://www.ipfire.org/dbl/smart-tv; metadata:dbl smart-tv.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [Smart TV] Blocked HTTP Request"; http.host; domain; dataset:isset,smart-tv,type string,load datasets/smart-tv.txt; classtype:policy-violation; priority:4; sid:12002102; rev:1; reference:url,https://www.ipfire.org/dbl/smart-tv; metadata:dbl smart-tv.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [Smart TV] Blocked TLS Connection"; tls.sni; domain; dataset:isset,smart-tv,type string,load datasets/smart-tv.txt; classtype:policy-violation; priority:4; sid:12002103; rev:1; reference:url,https://www.ipfire.org/dbl/smart-tv; metadata:dbl smart-tv.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [Smart TV] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,smart-tv,type string,load datasets/smart-tv.txt; classtype:policy-violation; priority:4; sid:12002104; rev:1; reference:url,https://www.ipfire.org/dbl/smart-tv; metadata:dbl smart-tv.dbl.ipfire.org;)

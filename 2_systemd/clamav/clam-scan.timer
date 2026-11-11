@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Secureblue ClamAV scan daily
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=1h
+Persistent=yes
+Unit=clamav-scan.service
+
+[Install]
+WantedBy=timers.target

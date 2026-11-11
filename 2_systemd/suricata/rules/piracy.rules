@@ -1,0 +1,33 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : Piracy
+#
+#  Blocks domains associated with copyright-infringing downloads
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-08-22T09:40:03.023166+00:00
+# Total Entries : 735
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * The Blocklist Project - Piracy (MIT)
+#     https://blocklistproject.github.io/Lists/piracy.txt
+#     Updated: 2026-07-20T14:00:04.912694+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [Piracy] Blocked DNS Query"; dns.query; domain; dataset:isset,piracy,type string,load datasets/piracy.txt; classtype:policy-violation; priority:2; sid:12002001; rev:1; reference:url,https://www.ipfire.org/dbl/piracy; metadata:dbl piracy.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [Piracy] Blocked HTTP Request"; http.host; domain; dataset:isset,piracy,type string,load datasets/piracy.txt; classtype:policy-violation; priority:2; sid:12002002; rev:1; reference:url,https://www.ipfire.org/dbl/piracy; metadata:dbl piracy.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [Piracy] Blocked TLS Connection"; tls.sni; domain; dataset:isset,piracy,type string,load datasets/piracy.txt; classtype:policy-violation; priority:2; sid:12002003; rev:1; reference:url,https://www.ipfire.org/dbl/piracy; metadata:dbl piracy.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [Piracy] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,piracy,type string,load datasets/piracy.txt; classtype:policy-violation; priority:2; sid:12002004; rev:1; reference:url,https://www.ipfire.org/dbl/piracy; metadata:dbl piracy.dbl.ipfire.org;)

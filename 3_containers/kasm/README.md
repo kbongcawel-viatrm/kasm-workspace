@@ -2,7 +2,7 @@
 
 This directory contains two distinct Cloudflare components with different execution locations.
 
-- `tunnel/compose.cloudflared.yaml`: deploy on the **FCOS host**. It runs the server-side `cloudflared` connector as an outbound-only connector to Cloudflare.
+- `../../cloudflared/compose.yaml`: deploy on the **FCOS host**. It runs the server-side `cloudflared` connector as an outbound-only connector to Cloudflare.
 - `workspace/`: builds a **Kasm Linux terminal workspace** with the Cloudflare One Client Linux package (`warp-cli`, `warp-svc`). The client represents the workspace container as the enrolled endpoint, not the user's physical laptop.
 
 ## Base image choice
@@ -14,10 +14,16 @@ The Dockerfile defaults to `kasmweb/core-ubuntu-noble:1.18.0-rolling-weekly` as 
 ## Build (build host / Kasm image builder)
 
 ```bash
-docker build \
-  --build-arg KASM_BASE_IMAGE=kasmweb/core-ubuntu-noble:<YOUR_KASM_RELEASE>-rolling-weekly \
-  -t local/kasm-linux-terminal:cloudflare-client-2026.11 \
-  ./kasm/workspace
+cd workspace
+docker compose --profile build build kasm-workspace-build
+```
+
+To override the base image or output tag:
+
+```bash
+KASM_BASE_IMAGE=kasmweb/core-ubuntu-noble:<YOUR_KASM_RELEASE>-rolling-weekly \
+KASM_WORKSPACE_IMAGE=local/kasm-linux-terminal:<tag> \
+docker compose --profile build build kasm-workspace-build
 ```
 
 Register `local/kasm-linux-terminal:cloudflare-client-2026.11` as a custom workspace image in Kasm and select it for the Linux terminal workspace.
@@ -43,30 +49,18 @@ Use Cloudflare's headless Linux deployment procedure to create a service token a
 
 ## FCOS host tunnel
 
-Prepare the token file on FCOS host:
+The tunnel connector is a standalone Compose project at `../../cloudflared/compose.yaml`. Prepare the token file on the FCOS host next to that compose file (or set `CLOUDFLARED_TOKEN_FILE`):
 
 ```bash
-run0 install -d -m 0700 /etc/ai-stack/secrets
-# Transfer the tunnel token securely; do not put it in shell history.
-run0 install -o root -g root -m 0600 /secure/staging/cloudflared-token /etc/ai-stack/secrets/cloudflared-token
+cd /opt/ai-stack/3_containers/cloudflared
+run0 install -o root -g root -m 0600 /secure/staging/cloudflared-token ./cloudflared-token
 ```
 
-Merge the tunnel Compose fragment:
+Validate and deploy:
 
 ```bash
-docker compose \
-  -f /opt/ai-stack/compose.yaml \
-  -f /opt/ai-stack/kasm/tunnel/compose.cloudflared.yaml \
-  config --quiet
-```
-
-Then deploy only after a separate operational review:
-
-```bash
-docker compose \
-  -f /opt/ai-stack/compose.yaml \
-  -f /opt/ai-stack/kasm/tunnel/compose.cloudflared.yaml \
-  up -d cloudflared
+docker compose config --quiet
+docker compose up -d
 ```
 
 A remotely-managed tunnel's published application route and DNS record are configured in Cloudflare. Recommended Kasm hostname: `kasm.home-security.uk`, with an Access application/policy in front. No router port-forward is required.

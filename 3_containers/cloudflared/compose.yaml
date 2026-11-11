@@ -1,0 +1,38 @@
+# Cloudflare Tunnel connector for the FCOS host.
+# Standalone Compose project: deploy with
+#   cd 3_containers/cloudflared && docker compose up -d
+#
+# The tunnel token is a secret. Place it in a root-owned file next to this
+# compose file (mode 0600) or point CLOUDFLARED_TOKEN_FILE at another path:
+#   install -o root -g root -m 0600 /secure/staging/cloudflared-token \
+#     ./cloudflared-token
+# Never put the token in this file, .env, or shell history.
+
+name: ai-stack-cloudflared
+
+services:
+  cloudflared:
+    image: docker.io/cloudflare/cloudflared:latest
+    container_name: ai-stack-cloudflared
+    command:
+      - tunnel
+      - --no-autoupdate
+      - --metrics
+      - 127.0.0.1:20241
+      - run
+      - --token-file
+      - /run/secrets/cloudflared_token
+    secrets:
+      - cloudflared_token
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+
+secrets:
+  cloudflared_token:
+    file: ${CLOUDFLARED_TOKEN_FILE:-./cloudflared-token}

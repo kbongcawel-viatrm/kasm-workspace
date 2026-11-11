@@ -1,0 +1,24 @@
+# Build helper for the custom Kasm Linux terminal workspace image.
+# This does NOT run a service: it only produces the image that Kasm's
+# agent registers as a custom workspace image.
+#
+#   cd 3_containers/kasm/workspace
+#   docker compose --profile build build kasm-workspace-build
+#
+# Then register the resulting tag as a custom image in the Kasm admin
+# panel (see README.md in this directory).
+
+name: ai-stack-kasm-workspace
+
+services:
+  kasm-workspace-build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Pin to a Kasm base tag matching the deployed Kasm release.
+        KASM_BASE_IMAGE: ${KASM_BASE_IMAGE:-kasmweb/core-ubuntu-noble:1.18.0-rolling-weekly}
+    image: ${KASM_WORKSPACE_IMAGE:-local/kasm-linux-terminal:cloudflare-client-2026.11}
+    profiles:
+      - build
+    restart: "no"

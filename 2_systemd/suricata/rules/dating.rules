@@ -1,0 +1,33 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : Dating
+#
+#  Blocks domains for online dating and matchmaking services
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-10-25T06:30:04.887103+00:00
+# Total Entries : 1366
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * ShadowWhisperer - Dating (Public Domain)
+#     https://github.com/ShadowWhisperer/BlockLists/raw/refs/heads/master/RAW/Dating
+#     Updated: 2026-10-25T06:30:04.887103+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [Dating] Blocked DNS Query"; dns.query; domain; dataset:isset,dating,type string,load datasets/dating.txt; classtype:policy-violation; priority:2; sid:12001701; rev:1; reference:url,https://www.ipfire.org/dbl/dating; metadata:dbl dating.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [Dating] Blocked HTTP Request"; http.host; domain; dataset:isset,dating,type string,load datasets/dating.txt; classtype:policy-violation; priority:2; sid:12001702; rev:1; reference:url,https://www.ipfire.org/dbl/dating; metadata:dbl dating.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [Dating] Blocked TLS Connection"; tls.sni; domain; dataset:isset,dating,type string,load datasets/dating.txt; classtype:policy-violation; priority:2; sid:12001703; rev:1; reference:url,https://www.ipfire.org/dbl/dating; metadata:dbl dating.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [Dating] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,dating,type string,load datasets/dating.txt; classtype:policy-violation; priority:2; sid:12001704; rev:1; reference:url,https://www.ipfire.org/dbl/dating; metadata:dbl dating.dbl.ipfire.org;)

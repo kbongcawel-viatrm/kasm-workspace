@@ -1,0 +1,39 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : Violence
+#
+#  Blocks domains featuring violent or extremist content
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-10-27T22:00:02.888629+00:00
+# Total Entries : 302
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * ShadowWhisperer - Shock (Public Domain)
+#     https://raw.githubusercontent.com/ShadowWhisperer/BlockLists/master/Lists/Shock
+#     Updated: 2026-10-25T06:30:04.887103+00:00
+#   * Sinfonietta - Snuff (MIT)
+#     https://github.com/Sinfonietta/hostfiles/raw/refs/heads/master/snuff-hosts
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * UT1 - Violence (CC-BY-SA 4.0)
+#     https://dsi.ut-capitole.fr/blacklists/download/violence.tar.gz
+#     Updated: 2026-10-27T22:00:02.888629+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [Violence] Blocked DNS Query"; dns.query; domain; dataset:isset,violence,type string,load datasets/violence.txt; classtype:policy-violation; priority:2; sid:12001601; rev:1; reference:url,https://www.ipfire.org/dbl/violence; metadata:dbl violence.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [Violence] Blocked HTTP Request"; http.host; domain; dataset:isset,violence,type string,load datasets/violence.txt; classtype:policy-violation; priority:2; sid:12001602; rev:1; reference:url,https://www.ipfire.org/dbl/violence; metadata:dbl violence.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [Violence] Blocked TLS Connection"; tls.sni; domain; dataset:isset,violence,type string,load datasets/violence.txt; classtype:policy-violation; priority:2; sid:12001603; rev:1; reference:url,https://www.ipfire.org/dbl/violence; metadata:dbl violence.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [Violence] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,violence,type string,load datasets/violence.txt; classtype:policy-violation; priority:2; sid:12001604; rev:1; reference:url,https://www.ipfire.org/dbl/violence; metadata:dbl violence.dbl.ipfire.org;)

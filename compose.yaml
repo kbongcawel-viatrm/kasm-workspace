@@ -1,7 +1,10 @@
 # FCOS host security services for AI Stack.
+# Layout: 1_host/ (images), 2_systemd/ (host units + service configs),
+# 3_containers/ (other Compose projects), tools/ (scripts + installers).
 # Kasm Workspaces and cloudflared are managed separately:
-#   - Kasm: installed by its own installer on a supported Linux VM.
-#   - cloudflared: kasm/tunnel/compose.cloudflared.yaml (merged fragment).
+#   - Kasm: installed by its own installer on a supported Linux VM;
+#     its custom workspace image builds via 3_containers/kasm/workspace/compose.yaml.
+#   - cloudflared: 3_containers/cloudflared/compose.yaml (standalone project).
 #
 # Validate before deployment:
 #   docker compose config --quiet
@@ -16,7 +19,7 @@ services:
   audit-tools-build:
     build:
       context: .
-      dockerfile: Containerfile.audit
+      dockerfile: 1_host/Containerfile.audit
     image: local/ai-stack-audit-tools:latest
     profiles:
       - build
@@ -40,9 +43,11 @@ services:
       - no-new-privileges:true
     read_only: true
     volumes:
-      # Mount only the local rules file: replacing /etc/suricata wholesale
-      # would hide the image's default suricata.yaml and rule files.
-      - ./config/suricata/rules/local.rules:/etc/suricata/rules/local.rules:ro
+      # The curated ruleset and config live under 2_systemd/suricata/.
+      # Mounting /etc/suricata/rules wholesale replaces the image's default
+      # rules with this set; datasets/*.txt resolve inside that directory.
+      - ./2_systemd/suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro
+      - ./2_systemd/suricata/rules:/etc/suricata/rules:ro
       - ./data/suricata:/var/lib/suricata
       - ./logs/suricata:/var/log/suricata
     profiles:
@@ -77,7 +82,7 @@ services:
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
     volumes:
-      - ./scripts/clamav-scan.sh:/usr/local/bin/clamav-scan.sh:ro
+      - ./tools/scripts/clamav-scan.sh:/usr/local/bin/clamav-scan.sh:ro
       - ./data/clamav:/var/lib/clamav:ro
       - ${SCAN_TARGET_PATH:?SCAN_TARGET_PATH must be set in .env}:/scan-target:ro
       - ./logs/clamav:/var/log/ai-stack/clamav
@@ -96,7 +101,7 @@ services:
       - no-new-privileges:true
     read_only: true
     volumes:
-      - ./scripts/aide-entrypoint.sh:/usr/local/bin/aide-entrypoint.sh:ro
+      - ./tools/scripts/aide-entrypoint.sh:/usr/local/bin/aide-entrypoint.sh:ro
       - ./config/aide/aide.conf:/etc/aide.conf:ro
       - ${SCAN_TARGET_PATH:?SCAN_TARGET_PATH must be set in .env}:/scan-target:ro
       - ./data/aide:/var/lib/aide
@@ -113,7 +118,7 @@ services:
       - no-new-privileges:true
     read_only: true
     volumes:
-      - ./scripts/aide-entrypoint.sh:/usr/local/bin/aide-entrypoint.sh:ro
+      - ./tools/scripts/aide-entrypoint.sh:/usr/local/bin/aide-entrypoint.sh:ro
       - ./config/aide/aide.conf:/etc/aide.conf:ro
       - ${SCAN_TARGET_PATH:?SCAN_TARGET_PATH must be set in .env}:/scan-target:ro
       - ./data/aide:/var/lib/aide
@@ -131,7 +136,7 @@ services:
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m
     volumes:
-      - ./scripts/lynis-entrypoint.sh:/usr/local/bin/lynis-entrypoint.sh:ro
+      - ./tools/scripts/lynis-entrypoint.sh:/usr/local/bin/lynis-entrypoint.sh:ro
       - ./logs/lynis:/var/log/ai-stack/lynis
       - lynis-report:/var/log/lynis
     profiles:

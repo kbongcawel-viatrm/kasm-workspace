@@ -1,0 +1,45 @@
+###############################################################################
+# Domain Blocklist for IPFire
+###############################################################################
+#
+# This file contains domains that are part of the official IPFire Domain
+# Blocklist Project. It is intended for use with DNS servers and firewalls
+# that support blocklisting of known malicious or unwanted domains.
+#
+# List          : Social Networks
+#
+#  Blocks domains of social media platforms
+#
+# License       : CC BY-SA 4.0
+# Updated       : 2026-10-14T01:00:10.502889+00:00
+# Total Entries : 886
+#
+# Copyright (C) 2026 - IPFire Team
+#
+# For more information or to contribute:
+#   https://dbl.ipfire.org/
+#
+###############################################################################
+#
+# This list contains data from these sources:
+#
+#   * Alex Sannikov - Social (MIT)
+#     https://github.com/alexsannikov/adguardhome-filters/raw/refs/heads/master/social.txt
+#     Updated: 2026-10-14T01:00:10.502889+00:00
+#   * Sinfonietta - Social (MIT)
+#     https://github.com/Sinfonietta/hostfiles/raw/refs/heads/master/social-hosts
+#     Updated: 2026-08-17T16:30:03.394819+00:00
+#   * The Blocklist Project - Facebook (MIT)
+#     https://blocklistproject.github.io/Lists/facebook.txt
+#     Updated: 2026-07-20T14:00:04.912694+00:00
+#   * The Blocklist Project - TikTok (MIT)
+#     https://blocklistproject.github.io/Lists/tiktok.txt
+#     Updated: 2026-07-20T14:30:04.575768+00:00
+#   * The Blocklist Project - Twitter (MIT)
+#     https://blocklistproject.github.io/Lists/twitter.txt
+#     Updated: 2026-07-20T13:30:02.488627+00:00
+#
+alert dns any any -> any any (msg:"IPFire DBL [Social Networks] Blocked DNS Query"; dns.query; domain; dataset:isset,social,type string,load datasets/social.txt; classtype:policy-violation; priority:2; sid:12000801; rev:1; reference:url,https://www.ipfire.org/dbl/social; metadata:dbl social.dbl.ipfire.org;)
+alert http any any -> any any (msg:"IPFire DBL [Social Networks] Blocked HTTP Request"; http.host; domain; dataset:isset,social,type string,load datasets/social.txt; classtype:policy-violation; priority:2; sid:12000802; rev:1; reference:url,https://www.ipfire.org/dbl/social; metadata:dbl social.dbl.ipfire.org;)
+alert tls any any -> any any (msg:"IPFire DBL [Social Networks] Blocked TLS Connection"; tls.sni; domain; dataset:isset,social,type string,load datasets/social.txt; classtype:policy-violation; priority:2; sid:12000803; rev:1; reference:url,https://www.ipfire.org/dbl/social; metadata:dbl social.dbl.ipfire.org;)
+alert quic any any -> any any (msg:"IPFire DBL [Social Networks] Blocked QUIC Connection"; quic.sni; domain; dataset:isset,social,type string,load datasets/social.txt; classtype:policy-violation; priority:2; sid:12000804; rev:1; reference:url,https://www.ipfire.org/dbl/social; metadata:dbl social.dbl.ipfire.org;)
