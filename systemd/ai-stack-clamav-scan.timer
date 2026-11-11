@@ -1,0 +1,10 @@
+[Unit]
+Description=Run AI Stack ClamAV scan daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=30min
+
+[Install]
+WantedBy=timers.target

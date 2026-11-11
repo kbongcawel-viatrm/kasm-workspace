@@ -1,0 +1,142 @@
+# FCOS host security services for AI Stack.
+# Kasm Workspaces and cloudflared are managed separately:
+#   - Kasm: installed by its own installer on a supported Linux VM.
+#   - cloudflared: kasm/tunnel/compose.cloudflared.yaml (merged fragment).
+#
+# Validate before deployment:
+#   docker compose config --quiet
+#
+# Image tags below are starting points. Pin to tested immutable digests
+# before treating any service as production-ready (see README gates).
+
+name: ai-stack
+
+services:
+  # --- Build helper: AIDE + Lynis audit-tools image ----------------------
+  audit-tools-build:
+    build:
+      context: .
+      dockerfile: Containerfile.audit
+    image: local/ai-stack-audit-tools:latest
+    profiles:
+      - build
+    restart: "no"
+
+  # --- Passive network IDS ----------------------------------------------
+  suricata:
+    image: docker.io/jasonish/suricata:master
+    container_name: ai-stack-suricata
+    command:
+      - --af-packet
+      - -i
+      - ${SURICATA_INTERFACE:?SURICATA_INTERFACE must be set in .env}
+      - -D
+      - -v
+    network_mode: host
+    cap_add:
+      - NET_RAW    # AF_PACKET capture
+      - NET_ADMIN  # interface statistics
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    volumes:
+      # Mount only the local rules file: replacing /etc/suricata wholesale
+      # would hide the image's default suricata.yaml and rule files.
+      - ./config/suricata/rules/local.rules:/etc/suricata/rules/local.rules:ro
+      - ./data/suricata:/var/lib/suricata
+      - ./logs/suricata:/var/log/suricata
+    profiles:
+      - ids
+    restart: unless-stopped
+
+  # --- Antivirus daemon + definition updates ----------------------------
+  clamav:
+    image: docker.io/clamav/clamav:latest
+    container_name: ai-stack-clamav
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    volumes:
+      - ./data/clamav:/var/lib/clamav
+    profiles:
+      - antivirus
+    restart: unless-stopped
+
+  # One-shot scan using clamscan directly (loads the same definitions
+  # that freshclam writes into the shared data/clamav volume). The clamav
+  # service keeps definitions up to date; this job performs the scan.
+  clamav-scan:
+    image: docker.io/clamav/clamav:latest
+    entrypoint: ["/usr/local/bin/clamav-scan.sh"]
+    command: ["scan"]
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    volumes:
+      - ./scripts/clamav-scan.sh:/usr/local/bin/clamav-scan.sh:ro
+      - ./data/clamav:/var/lib/clamav:ro
+      - ${SCAN_TARGET_PATH:?SCAN_TARGET_PATH must be set in .env}:/scan-target:ro
+      - ./logs/clamav:/var/log/ai-stack/clamav
+    depends_on:
+      - clamav
+    profiles:
+      - antivirus
+      - antivirus-scan
+    restart: "no"
+
+  aide-init:
+    image: local/ai-stack-audit-tools:latest
+    entrypoint: ["/usr/local/bin/aide-entrypoint.sh"]
+    command: ["init"]
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    volumes:
+      - ./scripts/aide-entrypoint.sh:/usr/local/bin/aide-entrypoint.sh:ro
+      - ./config/aide/aide.conf:/etc/aide.conf:ro
+      - ${SCAN_TARGET_PATH:?SCAN_TARGET_PATH must be set in .env}:/scan-target:ro
+      - ./data/aide:/var/lib/aide
+      - ./logs/aide:/var/log/ai-stack/aide
+    profiles:
+      - integrity
+    restart: "no"
+
+  aide-check:
+    image: local/ai-stack-audit-tools:latest
+    entrypoint: ["/usr/local/bin/aide-entrypoint.sh"]
+    command: ["check"]
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    volumes:
+      - ./scripts/aide-entrypoint.sh:/usr/local/bin/aide-entrypoint.sh:ro
+      - ./config/aide/aide.conf:/etc/aide.conf:ro
+      - ${SCAN_TARGET_PATH:?SCAN_TARGET_PATH must be set in .env}:/scan-target:ro
+      - ./data/aide:/var/lib/aide
+      - ./logs/aide:/var/log/ai-stack/aide
+    profiles:
+      - integrity
+    restart: "no"
+
+  lynis:
+    image: local/ai-stack-audit-tools:latest
+    entrypoint: ["/usr/local/bin/lynis-entrypoint.sh"]
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    volumes:
+      - ./scripts/lynis-entrypoint.sh:/usr/local/bin/lynis-entrypoint.sh:ro
+      - ./logs/lynis:/var/log/ai-stack/lynis
+      - lynis-report:/var/log/lynis
+    profiles:
+      - audit
+    restart: "no"
+
+volumes:
+  lynis-report:

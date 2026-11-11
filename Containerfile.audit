@@ -1,0 +1,13 @@
+# syntax=docker/dockerfile:1.7
+# Audit-tools image for the AIDE and Lynis one-shot jobs.
+# Built via: docker compose --profile build build audit-tools-build
+FROM registry.fedoraproject.org/fedora:41
+
+RUN dnf -y install --setopt=tsflags=nodocs \
+      aide \
+      lynis \
+    && dnf clean all \
+    && install -d -m 0750 /var/log/lynis /var/log/ai-stack/aide
+
+# Entrypoints are mounted read-only from scripts/ at run time; nothing
+# secrets-shaped is baked into this image.

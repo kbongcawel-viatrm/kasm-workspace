@@ -1,0 +1,15 @@
+# Local Suricata rules for the AI Stack passive IDS.
+# Loaded via the default suricata.yaml include of /etc/suricata/rules.
+# Alerts only; this deployment is passive IDS, not IPS.
+# -cidr-mask applies: keep rules scoped to your own networks.
+
+# Alert on outbound SSH attempts from the host network to anywhere
+# that is not the local subnet. Adjust HOME_NET expectations after
+# verifying your actual addressing.
+# alert tcp $HOME_NET any -> !$HOME_NET 22 (msg:"AI-STACK Outbound SSH attempt"; sid:1000001; rev:1; classtype:policy-violation;)
+
+# Alert on plain-text HTTP credentials leaving the network.
+alert tcp $HOME_NET any -> $EXTERNAL_NET 80 (msg:"AI-STACK Plain-text HTTP session"; flow:to_server,established; sid:1000002; rev:1; classtype:not-suspicious;)
+
+# Alert on unexpected large upstream transfers (potential exfil), demo threshold.
+alert ip $HOME_NET any -> $EXTERNAL_NET any (msg:"AI-STACK Large outbound session over 25MB"; flow:to_server; dsize:>25000000; sid:1000003; rev:1;)

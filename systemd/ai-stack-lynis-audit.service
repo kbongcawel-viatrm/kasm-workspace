@@ -1,0 +1,12 @@
+[Unit]
+Description=AI Stack container-scoped Lynis audit
+Documentation=file:/opt/ai-stack/README.md
+After=docker.service
+Requires=docker.service
+ConditionPathExists=/opt/ai-stack/logs/lynis
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ai-stack
+ExecStart=/usr/bin/docker compose -f /opt/ai-stack/compose.yaml --profile audit run --rm lynis
+TimeoutStartSec=0

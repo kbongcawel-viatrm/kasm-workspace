@@ -1,0 +1,18 @@
+[Unit]
+Description=AI Stack Compose security services
+Documentation=file:/opt/ai-stack/README.md
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ai-stack
+# Daemons (suricata, clamav) run behind their compose profiles.
+ExecStart=/usr/bin/docker compose -f /opt/ai-stack/compose.yaml --profile ids --profile antivirus up -d
+ExecStop=/usr/bin/docker compose -f /opt/ai-stack/compose.yaml --profile ids --profile antivirus down
+RemainAfterExit=yes
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Run AI Stack AIDE check daily
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

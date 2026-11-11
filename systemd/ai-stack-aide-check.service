@@ -1,0 +1,12 @@
+[Unit]
+Description=AI Stack AIDE integrity check of the configured scan target
+Documentation=file:/opt/ai-stack/README.md
+After=docker.service
+Requires=docker.service
+ConditionPathExists=/opt/ai-stack/data/aide/aide.db.gz
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ai-stack
+ExecStart=/usr/bin/docker compose -f /opt/ai-stack/compose.yaml --profile integrity run --rm aide-check
+TimeoutStartSec=0

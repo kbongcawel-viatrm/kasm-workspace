@@ -1,0 +1,12 @@
+[Unit]
+Description=AI Stack ClamAV scan of the configured scan target
+Documentation=file:/opt/ai-stack/README.md
+After=docker.service ai-stack-compose.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ai-stack
+# Detections are logged only; the unit result records the scan outcome.
+ExecStart=/usr/bin/docker compose -f /opt/ai-stack/compose.yaml --profile antivirus --profile antivirus-scan run --rm clamav-scan
+TimeoutStartSec=0

@@ -1,0 +1,13 @@
+[Unit]
+Description=AI Stack one-time AIDE baseline creation (deliberate, manual)
+Documentation=file:/opt/ai-stack/README.md
+After=docker.service
+Requires=docker.service
+ConditionPathExists=/opt/ai-stack/data/aide
+ConditionPathExists=!/opt/ai-stack/data/aide/aide.db.gz
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/ai-stack
+ExecStart=/usr/bin/docker compose -f /opt/ai-stack/compose.yaml --profile integrity run --rm aide-init
+TimeoutStartSec=0
